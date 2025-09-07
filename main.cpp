@@ -6,11 +6,11 @@
 #include <cmath> // sqrt
 
 int main(int argc, char** argv){
-  auto window = std::make_unique<sf::RenderWindow>(
-    sf::VideoMode(1280,720), 
-    "Audio Spectrum",
+  sf::RenderWindow window(
+    sf::VideoMode({1280,720}), "Audio Spectrum",
     sf::Style::Titlebar | sf::Style::Close
-  ); 
+  );
+
 
   if(argc < 2){
     std::cerr << "Usage: " << argv[0] << " file.[mp3|wav]\n";
@@ -35,7 +35,7 @@ int main(int argc, char** argv){
 
   std::vector<float> spectrum(sample_size / 2);
 
-  const sf::Int16 * samples = buffer.getSamples();
+  const int16_t * samples = buffer.getSamples();
 
   std::size_t sample_count = buffer.getSampleCount();
 
@@ -43,26 +43,24 @@ int main(int argc, char** argv){
 
   std::size_t current_sample = {};
 
-  sf::Texture texture;
-  texture.loadFromFile("./bg.png");
+  sf::Texture texture("./bg.png");
   sf::Sprite sprite(texture);
 
-  sf::Font font;
-  font.loadFromFile("./andarilho-font.ttf");
+  sf::Font font("./andarilho-font.ttf");
   std::string music = argv[1];
   music = music.substr(0, music.length() - 4);
-  sf::Text text(music, font, 18);
-  text.setPosition(20.f, 10.f);
+  sf::Text text(font, music, 18);
+  text.setPosition({20.f, 10.f});
 
-  while(window->isOpen()){
-    auto event = std::make_unique<sf::Event>();
-    while(window->pollEvent(*event)){
-      if(event->type == sf::Event::Closed){
-        window->close();
-      }
+  while(window.isOpen()){
+    while (const std::optional event = window.pollEvent())
+    {
+        // "close requested" event: we close the window
+        if (event->is<sf::Event::Closed>())
+            window.close();
     }
 
-    if(sound.getStatus() == sf::Sound::Stopped){
+    if(sound.getStatus() == sf::SoundSource::Status::Stopped){
       break;
     }
 
@@ -80,38 +78,38 @@ int main(int argc, char** argv){
 
     current_sample += sample_size;
 
-    window->clear();
-    window->draw(sprite);
-    window->draw(text);
+    window.clear();
+    window.draw(sprite);
+    window.draw(text);
 
     for(int i = {}; i < 50; i++){
       sf::RectangleShape bar;
       bar.setSize(sf::Vector2f(2, spectrum[i] * 1.f));
       bar.setPosition(
-          i * 6 + window->getPosition().x / 2.f + 480.f, 
-          window->getPosition().y / 2.f + 300.f);
-      bar.setRotation(180);
-      window->draw(bar);
+          {i * 6 + window.getPosition().x / 2.f + 480.f, 
+          window.getPosition().y / 2.f + 300.f});
+      bar.setRotation(sf::degrees(180));
+      window.draw(bar);
 
 
       bar.setSize(sf::Vector2f(2, -(spectrum[i] * 1.f)));
-      window->draw(bar);
+      window.draw(bar);
     }
 
     for(int i = 49; i >= 0; --i){
       sf::RectangleShape bar;
       bar.setSize(sf::Vector2f(2, spectrum[i] * 1.f));
       bar.setPosition(
-          (49 - i) * 6 + 340.f, 
-          window->getPosition().y / 2.f + 300.f);
-      bar.setRotation(180);
-      window->draw(bar);
+          {(49 - i) * 6 + 340.f,
+          window.getPosition().y / 2.f + 300.f});
+      bar.setRotation(sf::degrees(180));
+      window.draw(bar);
 
       bar.setSize(sf::Vector2f(2, -(spectrum[i] * 1.f)));
-      window->draw(bar);
+      window.draw(bar);
     }
 
-    window->display();
+    window.display();
   }
 
   fftw_destroy_plan(plan);
