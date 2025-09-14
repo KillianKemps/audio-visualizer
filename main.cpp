@@ -73,7 +73,7 @@ int main(int argc, char** argv){
     fftw_execute(plan);
 
     for(int i = {}; i < sample_size / 2; ++i){
-      spectrum[i] = std::sqrt(out[i][0] * out[i][0] + out[i][1] + out[i][1]);
+      spectrum[i] = std::sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]);
     }
 
     current_sample += sample_size;
